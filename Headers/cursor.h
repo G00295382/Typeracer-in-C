@@ -7,4 +7,6 @@ typedef struct {
 
 int saveCursor(CursorPos* pos);
 
-void moveCursor(const CursorPos* pos);
+void moveCursor(const CursorPos pos);
+
+CursorPos createCursor(const int row, const int col);
