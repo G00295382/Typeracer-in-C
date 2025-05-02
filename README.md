@@ -32,16 +32,16 @@ Contains several structs and functions that allow easy setup and clean organizat
 
 #### Functions
 
-* `createGamemode()` returns an instance of a new `GamemodeData` struct, initialized with `0` levels, an initial level capacity of the value of the `INITIAL_CAPACITY` constant, which is set globally to `10`, and a pointer to a dynamically allocated block of memory that will contain the array of `LevelData` struct pointers.
-* `createLevel()` works exactly the same as `createGamemode()`, but will return a new instance of `LevelData`, and the array will be of `PromptData` struct pointers.
+* `createGamemode()` returns an instance of a new `GamemodeData` struct, initialized with `0` levels, an initial level capacity of the value of the `INITIAL_CAPACITY` constant, which is set globally to `10`, and a pointer to a dynamically allocated block of memory that will contain the array of `LevelData` structs.
+* `createLevel()` works exactly the same as `createGamemode()`, but will return a new instance of `LevelData`, and the array will be of `PromptData` structs.
 * `createPrompt(char*)` first dynamically allocates a memory block with the size of the `PER_PROMPT_WORD_LIMIT` constant (which is globally defined as `100`) multiplied by the byte size of a char pointer.
 Then, it splits the passed char array parameter into an array of individual dynamically allocated words using `splitIntoWords()` and assigns them to the memory block allocated earlier. Finally, the memory block is resized to just small enough to fit the total number of words from the passed string.
 
 <br>
 
-* `addLevelToGameMode(GamemodeData*, LevelData*)` adds the passed `LevelData` struct pointer to the passed `GamemodeData` struct's `levelData` array. If doing so would exceed the `GamemodeData` struct's internal level capacity, it will expand the capacity by the value of the `INITIAL_CAPACITY` constant and re-allocate the array to be the new size of the capacity.
+* `addLevelToGameMode(GamemodeData*, LevelData)` adds the passed `LevelData` struct to the passed `GamemodeData` struct's `levelData` array. If doing so would exceed the `GamemodeData` struct's internal level capacity, it will expand the capacity by the value of the `INITIAL_CAPACITY` constant and re-allocate the array to be the new size of the capacity.
 
-* `addPromptToLevel(LevelData*, PromptData*)` works exactly the same as `addLevelToGamemode()`, but it is adding the passed `PromptData` struct pointer to the passed `LevelData` struct's `promptArray`.
+* `addPromptToLevel(LevelData*, PromptData)` works exactly the same as `addLevelToGamemode()`, but it is adding the passed `PromptData` struct to the passed `LevelData` struct's `promptArray`.
 
 <br>
 
@@ -78,16 +78,41 @@ Then, it splits the passed char array parameter into an array of individual dyna
 
 <sup>\*How it currently works</sup>
 
-The `main()` function initializes the user prefix and sets up a single level containing one prompt using `addPromptStrToLevel()`, which creates a new `PromptData` instance from a hardcoded prompt string and adds it to the level.
+The `main()` function begins by initializing the user prefix and creating a `GamemodeData` object that contains three levels. Each level contains three unique prompt strings, added via `addPromptStrToLevel()`. These levels are added to the gamemode using `addLevelToGamemode()`.
 
-It then initializes various timing and loop control variables, sets up and stores several `CursorPos` structs for positioning the cursor (prompt start, progress tracking, and user input field), and disables the blinking cursor.
+The program then defines various control variables, timing structures, and cursor positions (`homeCursor`, `promptStart`, `currentPromptProgress`, `userInputField`) for layout management. Cursor blinking is also disabled for a cleaner user interface.
 
 <br>
 
-The current prompt is printed to the screen one word at a time using `printTextPromptByWord()`, and the user input field is positioned and saved. The actual game loop begins by hiding the cursor and jumping back to the start of the prompt using `moveCursor()`.
+The outermost loop (`levelLoop`) iterates through all levels in the selected gamemode. At the start of each level, the cursor is moved to the top-left, the timer is initialized and displayed using `updateTime()`, and the level index is printed.
 
-Each word in the prompt is processed one at a time. The word is printed underlined using `promptSafeUnderlinedPrint()`, and user input is collected character-by-character using `_getch()` while checking for timeouts via `updateTime()` in a non-blocking loop. Input is compared to the correct word in real-time, and incorrect characters are displayed in red. If the word is entered correctly and followed by a space, the loop continues to the next word.
+The next loop (`promptLoop`) goes through each prompt within the current level. Before showing the new prompt, the screen area is cleared from the prompt start position using the ANSI escape sequence `\033[J`, which clears to the end of the screen. The current prompt is printed word-by-word with automatic line wrapping using `printTextPromptByWord()`.
 
-After each word is completed, the input field is cleared, and the word is re-printed in either green (correct) or orange (incorrect) using `promptSafeProgressPrint()`, then the cursor position is saved again for the next word.
+Once the prompt is displayed, an input field is shown below with the user prefix, and its position is saved. The `wordLoop` begins, iterating through each word in the prompt.
 
-If all words are completed within the time limit, the game ends with a *"You won!"* message. If the timer expires first, *"Times up! You lost."* is shown. The cursor is then repositioned to the input field and the program waits for a final key press before exiting.
+For each word:
+
+* It is printed underlined at the current prompt progress location using promptSafeUnderlinedPrint().
+
+* The program waits for character-by-character input in a non-blocking charLoop using _kbhit() and _getch().
+
+* During this loop, the updateTime() function is called periodically to refresh the timer.
+
+* Input is compared to the expected word in real time. Correct characters are printed normally, while incorrect ones are shown in red. Backspace and arrow key inputs are handled separately.
+
+* If the word is correctly completed and followed by a space, the input is accepted and the loop breaks.
+
+Once the word is complete:
+
+* The input line is cleared.
+
+* The word is reprinted at the prompt location in green (if correct) or orange (if there were mistakes) using `promptSafeProgressPrint()`.
+
+* The prompt progress position is updated and saved.
+
+After all words in the prompt are completed, the `promptLoop` proceeds to the next prompt. After all prompts in the level are done, the `levelLoop` advances to the next level.
+
+If the timer runs out at any point, the loop flags are updated and the game ends with a "Times up! You lost." message. If the player successfully finishes all levels, it ends with "You won!"
+
+Finally, the program pauses and waits for a final keypress before exiting.
+
