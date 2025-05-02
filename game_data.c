@@ -87,21 +87,24 @@ GamemodeData createGamemode() {
     GamemodeData newMode;
     newMode.totalLevels = 0;
     newMode.levelCapacity = INITIAL_CAPACITY;
-    newMode.levelArray = safe_malloc(newMode.levelCapacity * sizeof(GamemodeData));
+    newMode.levelArray = safe_malloc(newMode.levelCapacity * sizeof(LevelData));
     return newMode;
 }
 
-void addLevelToGamemode(GamemodeData* gamemode, LevelData* level) {
+void addLevelToGamemode(GamemodeData* gamemode, LevelData level) {
     // If at level capacity, increment level capacity by INITIAL_CAPACITY constant and resize array
     if (gamemode->totalLevels >= gamemode->levelCapacity) {
         gamemode->levelCapacity += INITIAL_CAPACITY;
-        gamemode->levelArray = safe_realloc(gamemode->levelArray, gamemode->levelCapacity * sizeof(PromptData));
+        gamemode->levelArray = safe_realloc(gamemode->levelArray, gamemode->levelCapacity * sizeof(LevelData));
     }
+
+    // Add level to the gamemodes's promptArray
+    gamemode->levelArray[gamemode->totalLevels++] = level;
 }
 
 void compactGamemode(GamemodeData* gamemode) {
     // Change gamemodes's levelCapacity to value of totalLevels
     gamemode->levelCapacity = gamemode->totalLevels;
     // Resize level's promptArray to the new value of promptCapacity
-    gamemode->levelArray = safe_realloc(gamemode->levelArray, gamemode->levelCapacity * sizeof(PromptData));
+    gamemode->levelArray = safe_realloc(gamemode->levelArray, gamemode->levelCapacity * sizeof(LevelData));
 }
