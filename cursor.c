@@ -21,7 +21,14 @@ int saveCursor(CursorPos* pos) {
     }
 }
 
-void moveCursor(const CursorPos* pos) {
-    printf("\033[%d;%dH", pos->row, pos->col);
+void moveCursor(const CursorPos pos) {
+    printf("\033[%d;%dH", pos.row, pos.col);
     fflush(stdout);
+}
+
+CursorPos createCursor(const int row, const int col) {
+    CursorPos newCursor;
+    newCursor.row = row;
+    newCursor.col = col;
+    return newCursor;
 }
