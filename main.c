@@ -63,14 +63,15 @@ void promptSafeProgressPrint(const char* str, int* lineCharsLeft, boolean leadin
 
 void printTextPromptByWord(char* wordArray[], int totalWords) {
     int lineCharsLeft = PER_LINE_CHAR_LIMIT;
+    printf("\033[K"); // Clear initial line
     for (int i = 0; i < totalWords; i++) {
         if (i + 1 >= totalWords) { // If last word, don't count or print space
             lineCharsLeft -= strlen(wordArray[i]);
             if (lineCharsLeft > 0) {
                 printf("%s", wordArray[i]);
             }
-            else {
-                printf("\n  %s", wordArray[i]);
+            else { // If not enough chars remaining on line for word, goto newline and clear the line before printing the word
+                printf("\n\033[K  %s", wordArray[i]);
                 lineCharsLeft = PER_LINE_CHAR_LIMIT;
             }
         }
@@ -108,35 +109,38 @@ void formatTime(int total_seconds) {
     int seconds = total_seconds % 60;
 
     if (hours > 0) {
-        printf("%02d:%02d:%02d\n", hours, minutes, seconds);
+        printf("%02d:%02d:%02d", hours, minutes, seconds);
     }
     else {
-        printf("%02d:%02d\n", minutes, seconds);
+        printf("%02d:%02d", minutes, seconds);
     }
 }
 
-void updateTime(time_t start_time, time_t current_time, time_t time_limit) {
+void updateTime(CursorPos pos, time_t start_time, time_t current_time, time_t time_limit) {
     // Save the current cursor position
-    printf("\x1B[s");
+    CursorPos previousPos;
+    saveCursor(&previousPos);
 
     // Hide cursor and move it to the top-left
-    printf("\x1B[?25l\x1B[H");
+    printf("\033[?25l");
+    moveCursor(pos);
 
     // Calculate total remaining seconds
     int tr_total_seconds = (long)time_limit - ((long)current_time - start_time);
 
     printf("Time Remaining  -  ");
     if (tr_total_seconds <= 10) { // Red text color when <= 30 seconds
-        printf("\x1B[91m");
+        printf("\033[91m");
     }
     else if ((((double)tr_total_seconds / time_limit) * 100) <= 50) { // Yellow text color when <=50% time remaining
-        printf("\x1B[33m");
+        printf("\033[33m");
     }
     formatTime(tr_total_seconds); // Print formatted time (hh:/mm:ss) using total remaining seconds
-    printf("\x1B[0m\x1B[K"); // Return to normal text color and clear remaining parts of the line after cursor
+    printf("\033[0m\033[K"); // Return to normal text color and clear remaining parts of the line after cursor
 
     // Move cursor to the saved position and unhide it
-    printf("\x1B[u\x1B[?25h");
+    moveCursor(previousPos);
+    printf("\033[?25h");
 
     // Immediately update console output from buffer
     fflush(stdout);
@@ -146,175 +150,253 @@ int main() {
 
     initUserPrefix();
 
-    LevelData l1 = createLevel();
-    addPromptStrToLevel(&l1, "Five quacking zephyrs jolt my wax bed. The five boxing wizards jump quickly. Five or six big jet planes zoomed quickly by the tower. Jim quickly realized that the beautiful gowns are expensive.");
+    GamemodeData* selectedGamemode;
+    LevelData* currentLevel;
+    PromptData* userPrompt;
 
-    char userResponse[USER_INPUT_ARRAY_SIZE];
-
-	char ch;
-	int time_limit = 50;
-    int updateTimeLoop = 0;
-
-    PromptData* userPrompt = &l1.promptArray[0];
-
-    // Initialize time
-    time_t start_time = time(NULL);
-    time_t current_time = time(NULL);
-    updateTime(start_time, current_time, time_limit);
-
-    // Initialize prompt cursor positions
+    // Initialize cursor positions
+    CursorPos homeCursor = createCursor(1, 1); // top-left of console window
     CursorPos promptStart;
     CursorPos currentPromptProgress;
     CursorPos userInputField;
 
+    // Create and organize prompt data
+    GamemodeData g1 = createGamemode();
+
+    LevelData l1 = createLevel();
+    addPromptStrToLevel(&l1, "First prompt");
+    addPromptStrToLevel(&l1, "Second prompt");
+    addPromptStrToLevel(&l1, "Third prompt");
+    LevelData l2 = createLevel();
+    addPromptStrToLevel(&l2, "Fourth prompt");
+    addPromptStrToLevel(&l2, "Fifth prompt");
+    addPromptStrToLevel(&l2, "Sixth prompt");
+    LevelData l3 = createLevel();
+    addPromptStrToLevel(&l3, "Seventh prompt");
+    addPromptStrToLevel(&l3, "Eighth prompt");
+    addPromptStrToLevel(&l3, "Ninth prompt");
+
+    addLevelToGamemode(&g1, l1);
+    addLevelToGamemode(&g1, l2);
+    addLevelToGamemode(&g1, l3);
+
+
+    char userResponse[USER_INPUT_ARRAY_SIZE];
+
+	char ch;
+	int time_limit = 40;
+    int updateTimeLoop = 0;
+
+    // Initialize time
+    time_t start_time;
+    time_t current_time;
+
     // Disable cursor blinking
     printf("\033[?12l");
 
-    // Prompt spacing
-    printf("\n\n  ");
-
-    // Word-by-word printed prompt
-
-    // Save current cursor position
-    saveCursor(&promptStart);
-    currentPromptProgress = promptStart;
-
-    // Procedurally print prompt word by word with newlines when line char limit is reached
-    printTextPromptByWord(userPrompt->wordArray, userPrompt->totalWords);
-
-    // Input spacing
-    printf("\n\n%c ", userPrefix);
-    saveCursor(&userInputField);
-
     // Set loop variables
-    int wordIndex = 0;
-    int promptIndex = 0;
+    int wordIndex;
+    int promptIndex;
     int levelIndex = 0;
     int totalPromptChars = 0;
     int totalInputErrors = 0;
     int wordLength;
     int wordErrors;
     int wordInputIndex;
-    boolean charLoop = true;
-    boolean wordLoop = true;
-    boolean promptLoop = true;
-    int lineCharsLeft = PER_LINE_CHAR_LIMIT;
+    boolean charLoop;
+    boolean wordLoop;
+    boolean promptLoop;
+    boolean levelLoop;
+    boolean playLoop;
+    boolean gameLoop;
+    int lineCharsLeft;
     int winState = -1;
-    
-    // Hide cursor and move it to start of prompt
+
+    // Hide cursor
     printf("\033[?25l");
-    moveCursor(&promptStart);
 
-    // Begin word cycling loop
-    while (wordLoop) {
-        // Update word length to size of current word at index
-        wordLength = strlen(userPrompt->wordArray[wordIndex]);
-        // Set all elements of the userResponse array to the null character
-        memset(userResponse, '\0', sizeof(userResponse));
+    levelLoop = true;
 
-        // Print underlined version of word at current index
-        promptSafeUnderlinedPrint(userPrompt->wordArray[wordIndex], lineCharsLeft, true);
-        // Move cursor back to start of input field
-        moveCursor(&userInputField);
-        // Unhide cursor
-        printf("\x1B[?25h");
+    selectedGamemode = &g1;
 
-        totalPromptChars += wordLength;
-        wordErrors = 0;
-        wordInputIndex = 0;
+    // Cycle between the levels in the selected gamemode
+    while (levelLoop) {
+        // Move cursor to the top-left of the console window
+        moveCursor(homeCursor);
+        // Display timer on current line
+        start_time = time(NULL);
+        current_time = time(NULL);
+        updateTime(homeCursor, start_time, current_time, time_limit);
+        // Set current level to specified index of selected gamemode
+        currentLevel = &selectedGamemode->levelArray[levelIndex];
+        // Display level info on next line
+        printf("\nLevel %d/%d\033[K", levelIndex + 1, selectedGamemode->totalLevels);
+        // Navigate to where the prompt will be printed
+        printf("\n\n  ");
+        // Save current cursor position to promptStart
+        saveCursor(&promptStart);
 
-        charLoop = true;
+        // Reset prompt index
+        promptIndex = 0;
+        promptLoop = true;
 
-        // Begin word input loop
-        while (charLoop && wordLoop) {
-            while (!_kbhit() && wordLoop) {  // Wait for a key press without blocking
-                updateTimeLoop++; // Increment time display update loop count
-                current_time = time(NULL); // Update current time
-                if (current_time - start_time >= time_limit) { // Fail player if they exceeded the time limit
-                    winState = 0;
-                    wordLoop = false;
+        // Cycle between the prompts in each level
+        while (promptLoop && levelLoop) {
+            // Move cursor to the start of the prompt
+            moveCursor(promptStart);
+            // Set current prompt progress cursor to prompt start cursor
+            currentPromptProgress = promptStart;
+            // Clear all text from the screen past the cursor
+            printf("\033[03");
+
+            // Set userPrompt to prompt at specified index of current level
+            userPrompt = &currentLevel->promptArray[promptIndex];
+            // Procedurally print prompt word by word with newlines when line char limit is reached
+            printTextPromptByWord(userPrompt->wordArray, userPrompt->totalWords);
+            // Create input field and save it's position to a cursor
+            printf("\n\n%c ", userPrefix);
+            saveCursor(&userInputField);
+
+            // Reset line chars left
+            lineCharsLeft = PER_LINE_CHAR_LIMIT;
+            // Reset word index
+            wordIndex = 0;
+
+            // Move cursor back to the start of the prompt
+            moveCursor(promptStart);
+            // Hide the cursor
+            printf("\033[?25l");
+
+            wordLoop = true;
+
+            // Cycle between the words in each prompt
+            while (wordLoop && promptLoop && levelLoop) {
+                // Update word length to size of current word at index
+                wordLength = strlen(userPrompt->wordArray[wordIndex]);
+                // Set all elements of the userResponse array to the null character
+                memset(userResponse, '\0', sizeof(userResponse));
+
+                // Print underlined version of word at current index
+                promptSafeUnderlinedPrint(userPrompt->wordArray[wordIndex], lineCharsLeft, true);
+                // Move cursor back to start of input field
+                moveCursor(userInputField);
+                // Unhide cursor
+                printf("\x1B[?25h");
+
+                totalPromptChars += wordLength;
+                wordErrors = 0;
+                wordInputIndex = 0;
+
+                charLoop = true;
+
+                // Cycle between the characters in each word
+                while (charLoop && wordLoop && promptLoop && levelLoop) {
+                    while (!_kbhit() && levelLoop) {  // Wait for a key press without blocking
+                        updateTimeLoop++; // Increment time display update loop count
+                        current_time = time(NULL); // Update current time
+                        if (current_time - start_time >= time_limit) { // Fail user if they exceeded the time limit
+                            winState = 0;
+                            levelLoop = false;
+                        }
+                        if (updateTimeLoop >= TIME_DISPLAY_REFRESH_RATE) { // Update time display if TDU loop count exceeds threshold
+                            updateTimeLoop = 0;
+                            updateTime(homeCursor, start_time, current_time, time_limit);
+                        }
+                        Sleep(1);
+                    }
+                    if (charLoop && wordLoop && promptLoop && levelLoop) {
+                        ch = _getch();  // Read input once a key is pressed
+                        if (ch == 8) { // If backspace
+                            if (wordInputIndex > 0) { // If not at beginning of input
+                                wordInputIndex--;
+                                printf("%c \033[D", ch); // Overwrite character behind cursor with a space
+                            }
+                        }
+                        else if (ch == -32) { // If arrow keys
+                            ch = _getch(); // Block input of second arrow key character
+                        }
+                        else if (!(ch == 10 || ch == 13)) { // If not \n or \r (enter)
+                            if (wordInputIndex == wordLength && ch == 32) { // If user at final index of prompt and presses space
+                                //int result = strcmp(userPrompt, userResponse);
+                                //printf("\n\n%s\n%s\n%d", userPrompt, userResponse, result);
+                                if (strcmp(userPrompt->wordArray[wordIndex], userResponse) == 0) {
+                                    charLoop = false;
+                                }
+                            }
+                            if (wordInputIndex < wordLength) { // If user not at final index of prompt
+                                userResponse[wordInputIndex] = ch; // Update char array that tracks input
+                                if (ch == userPrompt->wordArray[wordIndex][wordInputIndex]) { // If input was correct, print normally
+                                    printf("%c", ch);
+                                }
+                                else { // If input was incorrect, print character in light red text
+                                    printf("\033[31m%c\x1B[0m", ch);
+                                    wordErrors++;
+                                }
+                                wordInputIndex++;
+                            }
+                        }
+                    }
                 }
-                if (updateTimeLoop >= TIME_DISPLAY_REFRESH_RATE) { // Update time display if TDU loop count exceeds threshold
-                    updateTimeLoop = 0;
-                    updateTime(start_time, current_time, time_limit);
+
+                // Hide cursor
+                printf("\033[?25l");
+                // Move cursor to start of input field
+                moveCursor(userInputField);
+                // Erase line after cursor
+                printf("\033[K");
+
+                // Print prompt progress if word loop is still active
+                if (wordLoop && promptLoop && levelLoop) {
+                    // Move cursor to where the progress printer left off
+                    moveCursor(currentPromptProgress);
+
+                    // Print light green / orange version of the word at the current index
+                    if (wordErrors > 0) {
+                        printf("\033[38;5;208m");
+                    }
+                    else {
+                        printf("\033[92m");
+                    }
+                    promptSafeProgressPrint(userPrompt->wordArray[wordIndex], &lineCharsLeft, true);
+                    printf("\033[0m");
+                    // Save progress printer position
+                    saveCursor(&currentPromptProgress);
+
+                    totalInputErrors += wordErrors;
+                    wordIndex++;
+
+                    if (wordIndex >= userPrompt->totalWords) { // If loop is still enabled and user completed all the words
+                        wordLoop = false;
+                    }
                 }
-                Sleep(1);
             }
-            if (charLoop && wordLoop) {
-                ch = _getch();  // Read input once a key is pressed
-                if (ch == 8) { // If backspace
-                    if (wordInputIndex > 0) { // If not at beginning of input
-                        wordInputIndex--;
-                        printf("%c \x1B[D", ch); // Backspace on console printed characters would simply move the cursor back, so make sure the console properly overwrites the character
-                    }
-                }
-                else if (ch == -32) { // If arrow keys
-                    ch = _getch(); // Block input of second arrow key character
-                }
-                else if (!(ch == 10 || ch == 13)) { // If not \n or \r (enter)
-                    if (wordInputIndex == wordLength && ch == 32) { // If user at final index of prompt and presses space
-                        //int result = strcmp(userPrompt, userResponse);
-                        //printf("\n\n%s\n%s\n%d", userPrompt, userResponse, result);
-                        if (strcmp(userPrompt->wordArray[wordIndex], userResponse) == 0) {
-                            charLoop = false;
-                        }
-                    }
-                    if (wordInputIndex < wordLength) { // If user not at final index of prompt
-                        userResponse[wordInputIndex] = ch; // Update char array that tracks input
-                        if (ch == userPrompt->wordArray[wordIndex][wordInputIndex]) { // If input was correct, print normally
-                            printf("%c", ch);
-                        }
-                        else { // If input was incorrect, print character in light red text
-                            printf("\x1B[31m%c\x1B[0m", ch);
-                            wordErrors++;
-                        }
-                        wordInputIndex++;
-                    }
+
+            if (promptLoop && levelLoop) {
+                promptIndex++;
+
+                if (promptIndex >= currentLevel->totalPrompts) { // If loop is still enabled and user completed all the prompts
+                    promptLoop = false;
                 }
             }
         }
 
-        // Hide cursor
-        printf("\033[?25l");
-        // Move cursor to start of input field
-        moveCursor(&userInputField);
-        // Erase line after cursor
-        printf("\033[K");
+        if (levelLoop) {
+            levelIndex++;
 
-        if (wordLoop == true) {
-            // Move cursor to where the progress printer left off
-            moveCursor(&currentPromptProgress);
-
-            // Print light green / orange version of the word at the current index
-            if (wordErrors > 0) {
-                printf("\033[38;5;208m");
-            }
-            else {
-                printf("\033[92m");
-            }
-            promptSafeProgressPrint(userPrompt->wordArray[wordIndex], &lineCharsLeft, true);
-            printf("\033[0m");
-            // Save progress printer position
-            saveCursor(&currentPromptProgress);
-
-            totalInputErrors += wordErrors;
-            wordIndex++;
-
-            if (wordIndex >= userPrompt->totalWords) { // If loop is still enabled and user completed all the words
-                winState = 1;
-                wordLoop = false;
+            if (levelIndex >= selectedGamemode->totalLevels) { // If loop is still enabled and user completed all the levels
+                levelLoop = false;
             }
         }
     }
 
     // Move cursor to start of input field
-    moveCursor(&userInputField);
+    moveCursor(userInputField);
 
-    if (winState == 1) {
-        printf("\nYou won!\n");
-    }
-    else if (winState == 0) {
+    if (winState == 0) {
         printf("\nTimes up! You lost.\n");
+    }
+    else {
+        printf("\nYou won!\n");
     }
 
     Sleep(2000);
