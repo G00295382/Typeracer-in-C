@@ -20,6 +20,7 @@ void* safe_realloc(void* memoryBlockPointer, size_t newSize) {
         free(memoryBlockPointer);
         exit(REALLOCATION_FAILURE);
     }
+    return resizedBlockPointer;
 }
 
 // Wrapper for _strdup() that exits the program if memory allocation fails
