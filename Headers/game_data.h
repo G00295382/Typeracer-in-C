@@ -31,6 +31,6 @@ void compactLevel(LevelData* level);
 
 GamemodeData createGamemode();
 
-void addLevelToGamemode(GamemodeData* gamemode, LevelData* level);
+void addLevelToGamemode(GamemodeData* gamemode, LevelData level);
 
 void compactGamemode(GamemodeData* gamemode);
