@@ -247,7 +247,7 @@ int main() {
             // Set current prompt progress cursor to prompt start cursor
             currentPromptProgress = promptStart;
             // Clear all text from the screen past the cursor
-            printf("\033[03");
+            printf("\033[0J");
 
             // Set userPrompt to prompt at specified index of current level
             userPrompt = &currentLevel->promptArray[promptIndex];
