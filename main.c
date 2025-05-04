@@ -78,7 +78,7 @@ int main() {
             }
             else if (strcmp(userResponse, "Sudden Death") == 0) {
                 inputLoop = false;
-                sudden_death_mode_loop(generateGamemodeData(0), 10);
+                sudden_death_mode_loop(generateGamemodeData(0), 40);
             }
         }
     }
