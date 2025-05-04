@@ -11,10 +11,10 @@
 #include "game_loop.h"
 
 int main() {
-	// Disable cursor blinking
-	printf("\033[?12l");
+    // Disable cursor blinking
+    printf("\033[?12l");
 
-	char userResponse[USER_INPUT_ARRAY_SIZE];
+    char userResponse[USER_INPUT_ARRAY_SIZE];
     char ch;
     int inputIndex;
     boolean charLoop;
