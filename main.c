@@ -27,7 +27,7 @@ int main() {
         printf("Please select the gamemode you wish to try : \n");
         printf("- Normal\n");
         printf("- Time Trials\n");
-        printf("- Alt Time Trials\n");
+        printf("- Level Rushs\n");
         printf("- Sudden Death\n");
 
         printf("\n\n> ");
