@@ -1041,7 +1041,7 @@ void normal_mode_loop(GamemodeData gamemode) {
     moveCursor(homeCursor);
 }
 
-void sudden_death_mode_loop(GamemodeData gamemode) {
+void sudden_death_mode_loop(GamemodeData gamemode, int time_limit) {
     // Clear all text on screen
     printf("\033[2J");
 
@@ -1051,18 +1051,19 @@ void sudden_death_mode_loop(GamemodeData gamemode) {
     LevelData* currentLevel;
     PromptData* userPrompt;
 
-    time_t start_time = time(NULL);
-    time_t end_time;
-
     // Initialize cursor positions
     CursorPos homeCursor = createCursor(1, 1); // top-left of console window
     CursorPos promptStart;
     CursorPos currentPromptProgress;
+    CursorPos timeDisplay;
     CursorPos levelDisplay;
     CursorPos wpmDisplay;
     CursorPos userInputField;
 
     // Initialize time
+    time_t start_time;
+    time_t current_time;
+    time_t end_time;
     LARGE_INTEGER wpm_freq, wpm_last_word, wpm_current_word;
     QueryPerformanceFrequency(&wpm_freq);
     QueryPerformanceCounter(&wpm_last_word);
@@ -1082,7 +1083,6 @@ void sudden_death_mode_loop(GamemodeData gamemode) {
     int wordInputIndex;
     int lineCharsLeft;
     int winState = -1;
-    int time_limit = 40;
     int updateTimeLoop = 0;
 
     char userResponse[USER_INPUT_ARRAY_SIZE];
@@ -1095,10 +1095,16 @@ void sudden_death_mode_loop(GamemodeData gamemode) {
 
     // Hide cursor
     printf("\033[?25l");
-    // Navigate to where the level info will be displayed and save the cursor
+    // Navigate to where the timer will be displayed and save the cursor
     moveCursor(homeCursor);
+    printf("Time Remaining - ");
+    saveCursor(&timeDisplay);
+    // Display timer on current line
+    start_time = time(NULL);
+    current_time = time(NULL);
+    updateTime(timeDisplay, start_time, current_time, time_limit);
     // Navigate to where level info will be displayed and save the cursor
-    printf("Level - ");
+    printf("\nLevel - ");
     saveCursor(&levelDisplay);
     // Navigate to where WPM info will be displayed and save the cursor
     printf("\nWPM - ");
@@ -1107,6 +1113,7 @@ void sudden_death_mode_loop(GamemodeData gamemode) {
     // Navigate to where the prompt will be printed and save the cursor
     printf("\n\n  ");
     saveCursor(&promptStart);
+
 
     // Cycle between the levels in the selected gamemode
     while (levelLoop) {
@@ -1173,34 +1180,49 @@ void sudden_death_mode_loop(GamemodeData gamemode) {
 
                 // Cycle between the characters in each word
                 while (charLoop && wordLoop && promptLoop && levelLoop) {
-                    ch = _getch();  // Read input once a key is pressed
-                    if (ch == 8) { // If backspace
-                        if (wordInputIndex > 0) { // If not at beginning of input
-                            userResponse[--wordInputIndex] = '\0';
-                            printf("%c \033[D", ch); // Overwrite character behind cursor with a space
+                    while (!_kbhit() && levelLoop) {  // Wait for a key press without blocking
+                        updateTimeLoop++; // Increment time display update loop count
+                        current_time = time(NULL); // Update current time
+                        if (current_time - start_time >= time_limit) { // Fail user if they exceeded the time limit
+                            winState = 3;
+                            levelLoop = false;
                         }
+                        if (updateTimeLoop >= TIME_DISPLAY_REFRESH_RATE) { // Update time display if TDU loop count exceeds threshold
+                            updateTimeLoop = 0;
+                            updateTime(timeDisplay, start_time, current_time, time_limit);
+                        }
+                        Sleep(1);
                     }
-                    else if (ch == -32) { // If arrow keys
-                        ch = _getch(); // Block input of second arrow key character
-                    }
-                    else if (!(ch == 10 || ch == 13)) { // If not \n or \r (enter)
-                        if (wordInputIndex == wordLength && ch == 32) { // If user at final index of prompt and presses space
-                            //int result = strcmp(userPrompt, userResponse);
-                            //printf("\n\n%s\n%s\n%d", userPrompt, userResponse, result);
-                            if (strcmp(userPrompt->wordArray[wordIndex], userResponse) == 0) {
-                                charLoop = false;
+                    if (charLoop && wordLoop && promptLoop && levelLoop) {
+                        ch = _getch();  // Read input once a key is pressed
+                        if (ch == 8) { // If backspace
+                            if (wordInputIndex > 0) { // If not at beginning of input
+                                userResponse[--wordInputIndex] = '\0';
+                                printf("%c \033[D", ch); // Overwrite character behind cursor with a space
                             }
                         }
-                        if (wordInputIndex < wordLength) { // If user not at final index of prompt
-                            userResponse[wordInputIndex] = ch; // Update char array that tracks input
-                            if (ch == userPrompt->wordArray[wordIndex][wordInputIndex]) { // If input was correct, print character normally
-                                printf("%c", ch);
+                        else if (ch == -32) { // If arrow keys
+                            ch = _getch(); // Block input of second arrow key character
+                        }
+                        else if (!(ch == 10 || ch == 13)) { // If not \n or \r (enter)
+                            if (wordInputIndex == wordLength && ch == 32) { // If user at final index of prompt and presses space
+                                //int result = strcmp(userPrompt, userResponse);
+                                //printf("\n\n%s\n%s\n%d", userPrompt, userResponse, result);
+                                if (strcmp(userPrompt->wordArray[wordIndex], userResponse) == 0) {
+                                    charLoop = false;
+                                }
                             }
-                            else { 
-                                winState = 0;
-                                levelLoop = false;
+                            if (wordInputIndex < wordLength) { // If user not at final index of prompt
+                                userResponse[wordInputIndex] = ch; // Update char array that tracks input
+                                if (ch == userPrompt->wordArray[wordIndex][wordInputIndex]) { // If input was correct, print character normally
+                                    printf("%c", ch);
+                                }
+                                else { // If input was incorrect, fail player
+                                    winState = 2;
+                                    levelLoop = false;
+                                }
+                                wordInputIndex++;
                             }
-                            wordInputIndex++;
                         }
                     }
                 }
@@ -1281,6 +1303,7 @@ void sudden_death_mode_loop(GamemodeData gamemode) {
         }
     }
 
+    // Get end time
     end_time = time(NULL);
 
     // Hide cursor
@@ -1289,8 +1312,11 @@ void sudden_death_mode_loop(GamemodeData gamemode) {
     // Move cursor to start of input field
     moveCursor(userInputField);
 
-    if (winState == 0) {
-        printf("\nYou lost.\n\n");
+    if (winState == 3) {
+        printf("\nTimes up! You lost.\n\n");
+    }
+    else if (winState == 2) {
+        printf("\nOops! You lost.\n\n");
     }
     else {
         printf("\nYou won!\n\n");
