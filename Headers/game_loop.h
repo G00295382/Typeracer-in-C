@@ -29,3 +29,5 @@ void alt_time_trials_mode_loop(GamemodeData gamemode, int time_limit);
 void sudden_death_mode_loop(GamemodeData gamemode);
 
 void normal_mode_loop(GamemodeData gamemode);
+
+void show_credits();
