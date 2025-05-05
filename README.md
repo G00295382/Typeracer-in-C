@@ -51,7 +51,7 @@ Then, it splits the passed char array parameter into an array of individual dyna
 
 * `splitIntoWords(char* inputStr, char** outputArr, int outputArrSize)` takes the passed input char array, copies it using `strdup()`, then splits the copy into words using `strtok()` with `" "` as the set delimiter. A dynamically allocated copy of each word is created using `strdup()` before the copy is assigned to the appropriate index of the output array.
 
-## Main
+### Game Loop
 
 ### Functions
 
@@ -74,17 +74,15 @@ Then, it splits the passed char array parameter into an array of individual dyna
 
 * `updateTime(time_t start_time, time_t current_time, time_t time_limit)` updates the program's *"Time Remaining"* display. It uses ANSI escape sequences to save the current cursor position, then move it to "home" (or the very top left), then calculates the total remaining seconds using all three passed parameters, before preparing an ANSI escape sequence for a color code based on how many seconds are left (yellow if under 50% remaining, red if <= 30). Then prints the formatted time using `formatTime()`, clears the line after the cursor, and moves the cursor back to the saved position.
 
-### Game Loop
+### Time Trials Mode
 
-<sup>\*How it currently works</sup>
-
-The `main()` function begins by initializing the user prefix and creating a `GamemodeData` object that contains three levels. Each level contains three unique prompt strings, added via `addPromptStrToLevel()`. These levels are added to the gamemode using `addLevelToGamemode()`.
+The `time_trials_mode_loop()` function begins by initializing the user prefix and creating a `GamemodeData` object that contains three levels. Each level contains three unique prompt strings, added via `addPromptStrToLevel()`. These levels are added to the gamemode using `addLevelToGamemode()`.
 
 The program then defines various control variables, timing structures, and cursor positions (`homeCursor`, `promptStart`, `currentPromptProgress`, `userInputField`) for layout management. Cursor blinking is also disabled for a cleaner user interface.
 
 <br>
 
-The outermost loop (`levelLoop`) iterates through all levels in the selected gamemode. At the start of each level, the cursor is moved to the top-left, the timer is initialized and displayed using `updateTime()`, and the level index is printed.
+The outermost loop (`levelLoop`) iterates through all levels in the selected gamemode. At the start of each level, the cursor is moved to the top-left, the timer is initialized and displayed using `updateTime()`, and the level index is printed at the top.
 
 The next loop (`promptLoop`) goes through each prompt within the current level. Before showing the new prompt, the screen area is cleared from the prompt start position using the ANSI escape sequence `\033[J`, which clears to the end of the screen. The current prompt is printed word-by-word with automatic line wrapping using `printTextPromptByWord()`.
 
@@ -98,7 +96,8 @@ For each word:
 
 * During this loop, the updateTime() function is called periodically to refresh the timer.
 
-* Input is compared to the expected word in real time. Correct characters are printed normally, while incorrect ones are shown in red. Backspace and arrow key inputs are handled separately.
+* Input is compared to the expected word in real time. Correct characters are printed normally, while incorrect ones are shown in red.
+    * Special inputs, like Backspace, Arrow keys, and Escape, are handled separately. Notably, Backspace will simulate actually removing the character from the user's response array, while Escape will exit the game early and take the user back to the welcome screen.
 
 * If the word is correctly completed and followed by a space, the input is accepted and the loop breaks.
 
@@ -110,9 +109,30 @@ Once the word is complete:
 
 * The prompt progress position is updated and saved.
 
+* The WPM display is updated with the calculated WPM based on the time it took for the user to complete the word
+
 After all words in the prompt are completed, the `promptLoop` proceeds to the next prompt. After all prompts in the level are done, the `levelLoop` advances to the next level.
 
 If the timer runs out at any point, the loop flags are updated and the game ends with a "Times up! You lost." message. If the player successfully finishes all levels, it ends with "You won!"
 
 Finally, the program pauses and waits for a final keypress before exiting.
 
+### Level Rush Mode
+
+The `alt_time_trials_mode_loop()` function has the same exact structure as `time_trials_mode_loop()`, but the timer resets after every level.
+
+### Sudden Death Mode
+
+The `sudden_death_mode_loop()` function has the same exact structure as `time_trials_mode_loop()`, but it fails the user if they make a single mistake when typing the prompt.
+
+### Normal Mode
+
+The `normal_mode_loop()` function has generally similar structure to `time_trials_mode_loop()`, but it does not display or make use of a timer that fails the player if it reaches zero.
+
+## Main
+
+The `main()` function first disables cursor blinking, sets up some loop variables and puts the user in a nested `while` loop.
+
+The outermost loop (`gameLoop`) displays the program's welcome screen and lists gamemode options to select from, which use a combination of the gamemode loop functions, pre-generated prompt data, and a set time limit.
+
+Then it goes into the inner loop (`inputLoop`), and then the innermost loop (`charLoop`), which tracks and stores the user's input. Once the user presses enter, they exit the `charLoop` and the user's inputted response is checked against an `if-else` branch using `strcmp()` to see if it matches any of the available gamemodes. If it does, the `inputLoop` variable is set to false and the user enters the gamemode they specified. If it doesn't, `inputLoop` loops and the user will go back into `charLoop`.
