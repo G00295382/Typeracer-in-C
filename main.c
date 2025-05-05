@@ -11,10 +11,10 @@
 #include "game_loop.h"
 
 int main() {
-    // Disable cursor blinking
-    printf("\033[?12l");
+	// Disable cursor blinking
+	printf("\033[?12l");
 
-    char userResponse[USER_INPUT_ARRAY_SIZE];
+	char userResponse[USER_INPUT_ARRAY_SIZE];
     char ch;
     int inputIndex;
     boolean charLoop;
@@ -22,13 +22,13 @@ int main() {
     boolean gameLoop = true;
 
     while (gameLoop) {
-        printf("Welcome to TypeRaCer!\n\n");
+        printf("Welcome to TypeRa\033[93mC\033[0mer!\n\n\n");
 
-        printf("Please select the gamemode you wish to try : \n");
-        printf("- Normal\n");
-        printf("- Time Trials\n");
-        printf("- Level Rush\n");
-        printf("- Sudden Death\n");
+        printf("Please select the gamemode you wish to try : \n\n");
+        printf("- Pangrams (\033[92mNormal\033[0m)\n\n");
+        printf("- Gemma (\033[93mTimed\033[0m)\n\n");
+        printf("- Moby Dick (\033[93mTimed\033[0m)\n\n");
+        printf("- War and Peace (\033[93mTimed\033[0m, \033[91mSudden Death\033[0m)\n");
 
         printf("\n\n> ");
 
@@ -64,21 +64,25 @@ int main() {
                 }
             }
 
-            if (strcmp(userResponse, "Normal") == 0) {
+            if (strcmp(userResponse, "Pangrams") == 0) {
                 inputLoop = false;
                 normal_mode_loop(generateGamemodeData(0));
             }
-            else if (strcmp(userResponse, "Time Trials") == 0) {
+            else if (strcmp(userResponse, "Gemma") == 0) {
                 inputLoop = false;
-                time_trials_mode_loop(generateGamemodeData(0), 40);
+                time_trials_mode_loop(generateGamemodeData(1), 110);
             }
-            else if (strcmp(userResponse, "Level Rush") == 0) {
+            else if (strcmp(userResponse, "Moby Dick") == 0) {
                 inputLoop = false;
-                alt_time_trials_mode_loop(generateGamemodeData(0), 10);
+                alt_time_trials_mode_loop(generateGamemodeData(3), 120);
             }
-            else if (strcmp(userResponse, "Sudden Death") == 0) {
+            else if (strcmp(userResponse, "War and Peace") == 0) {
                 inputLoop = false;
-                sudden_death_mode_loop(generateGamemodeData(0), 40);
+                sudden_death_mode_loop(generateGamemodeData(2), 120);
+            }
+            else if (strcmp(userResponse, "Credits") == 0) {
+                inputLoop = false;
+                show_credits();
             }
         }
     }
