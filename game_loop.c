@@ -148,17 +148,13 @@ GamemodeData generateGamemodeData(index) {
     switch (index) {
         case 0: {
             LevelData l1 = createLevel();
-            addPromptStrToLevel(&l1, "First prompt");
-            addPromptStrToLevel(&l1, "Second prompt");
-            addPromptStrToLevel(&l1, "Third prompt");
+            addPromptStrToLevel(&l1, "The quick brown fox jumps over a lazy dog.");
+            addPromptStrToLevel(&l1, "Pack my box with five dozen liquor jugs.");
             LevelData l2 = createLevel();
-            addPromptStrToLevel(&l2, "Fourth prompt");
-            addPromptStrToLevel(&l2, "Fifth prompt");
-            addPromptStrToLevel(&l2, "Sixth prompt");
+            addPromptStrToLevel(&l2, "Waltz, bad nymph, for quick jigs vex.");
+            addPromptStrToLevel(&l2, "Jived fox nymph grabs quick waltz.");
             LevelData l3 = createLevel();
-            addPromptStrToLevel(&l3, "Seventh prompt");
-            addPromptStrToLevel(&l3, "Eighth prompt");
-            addPromptStrToLevel(&l3, "Ninth prompt");
+            addPromptStrToLevel(&l3, "Crazy Fredrick bought many very exquisite opal jewels.");
 
             compactLevel(&l1);
             compactLevel(&l2);
@@ -167,12 +163,81 @@ GamemodeData generateGamemodeData(index) {
             addLevelToGamemode(&newGamemode, l1);
             addLevelToGamemode(&newGamemode, l2);
             addLevelToGamemode(&newGamemode, l3);
+            break;
+        }
+        case 1: {
+            LevelData l1 = createLevel();
+            addPromptStrToLevel(&l1, "Gemma was only five minutes away from her parents' hut, but the jungle had already taken on a different personality.");
+            addPromptStrToLevel(&l1, "It was thicker. The trees had grown taller. The ti plants shaded the green forest a sinister red");
+            LevelData l2 = createLevel();
+            addPromptStrToLevel(&l2, "As a baby, Gemma's parents had taken her on their expeditions over mountains, deserts, and vast seas.");
+            addPromptStrToLevel(&l2, "Now that they had settled down in the tropical rainforest, Gemma had to devise intricate plans just to sneak out for morning adventures.");
 
-            compactGamemode(&newGamemode);
+            compactLevel(&l1);
+            compactLevel(&l2);
+
+            addLevelToGamemode(&newGamemode, l1);
+            addLevelToGamemode(&newGamemode, l2);
+            break;
+        }
+        case 2: {
+            LevelData l1 = createLevel();
+            addPromptStrToLevel(&l1, "Prince Vasili did not reply, though, with the quickness of memory and perception befitting a man of the world, he indicated by a movement of the head that he was considering this information.");
+            addPromptStrToLevel(&l1, "Anna Pavlovna's alarm was justified, for Pierre turned away from the aunt without waiting to hear her speech about Her Majesty's health.");
+            LevelData l2 = createLevel();
+            addPromptStrToLevel(&l2, "Pierre murmured something unintelligible, and continued to look round as if in search of something. On his way to the aunt he bowed to the little princess with a pleased smile, as to an intimate acquaintance.");
+            addPromptStrToLevel(&l2, "Though he was certainly rather bigger than the other men in the room, her anxiety could only have reference to the clever though shy, but observant and natural, expression which distinguished him from everyone else in that drawing room.");
+            LevelData l3 = createLevel();
+            addPromptStrToLevel(&l3, "The young man had not yet entered either the military or civil service, as he had only just returned from abroad where he had been educated, and this was his first appearance in society. ");
+            addPromptStrToLevel(&l3, " All who talked to her, and at each word saw her bright smile and the constant gleam of her white teeth, thought that they were in a specially amiable mood that day.");
+            LevelData l4 = createLevel();
+            addPromptStrToLevel(&l4, "Her pretty little upper lip, on which a delicate dark down was just perceptible, was too short for her teeth, but it lifted all the more sweetly, and was especially charming when she occasionally drew it down to meet the lower lip.");
+            addPromptStrToLevel(&l4, "Each visitor performed the ceremony of greeting this old aunt whom not one of them knew, not one of them wanted to know, and not one of them cared about; Anna Pavlovna observed these greetings with mournful and solemn interest and silent approval.");
+            LevelData l5 = createLevel();
+            addPromptStrToLevel(&l5, "The highest Petersburg society was assembled there: people differing widely in age and character but alike in the social circle to which they belonged. Prince Vasili's daughter, the beautiful Helene, came to take her father to the ambassador's entertainment; she wore a ball dress and her badge as maid of honor.");
+            addPromptStrToLevel(&l5, "Her father is very rich and stingy. He lives in the country. He is the well - known Prince Bolkonski who had to retire from the army under the late Emperor, and was nicknamed the King of Prussia. He is very clever but eccentric, and a bore.The poor girl is very unhappy.");
+
+            compactLevel(&l1);
+            compactLevel(&l2);
+            compactLevel(&l3);
+            compactLevel(&l4);
+            compactLevel(&l5);
+
+            addLevelToGamemode(&newGamemode, l1);
+            addLevelToGamemode(&newGamemode, l2);
+            addLevelToGamemode(&newGamemode, l3);
+            addLevelToGamemode(&newGamemode, l4);
+            addLevelToGamemode(&newGamemode, l5);
+            break;
+        }
+        case 3: {
+            LevelData l1 = createLevel();
+            addPromptStrToLevel(&l1, "You shuddered as you gazed, and wondered what monstrous cannibal and savage could ever have gone a death - harvesting with such a hacking, horrifying implement.");
+            addPromptStrToLevel(&l1, "Now, that Lazarus should lie stranded there on the curbstone before the door of Dives, this is more wonderful than that an iceberg should be moored to one of the Moluccas.");
+            addPromptStrToLevel(&l1, "Let them talk of their oriental summer climes of everlasting conservatories; give me the privilege of making my own summer with my own coals.");
+            addPromptStrToLevel(&l1, "But it’s too late to make any improvements now. The universe is finished; the copestone is on, and the chips were carted off a million years ago.");
+            LevelData l2 = createLevel();
+            addPromptStrToLevel(&l2, "It had a careless look, as if it were meant for the uses of the public; so, entering, the first thing I did was to stumble over an ash - box in the porch.");
+            addPromptStrToLevel(&l2, "Now having a night, a day, and still another night following before me in New Bedford, ere I could embark for my destined port, it became a matter of concernment where I was to eat and sleep meanwhile.");
+            addPromptStrToLevel(&l2, "As most young candidates for the pains and penalties of whaling stop at this same New Bedford, thence to embark on their voyage, it may as well be related that I, for one, had no idea of so doing.");
+            addPromptStrToLevel(&l2, "He thinks he breathes it first; but not so. In much the same way do the commonalty lead their leaders in many other things, at the same time that the leaders little suspect it.");
+            LevelData l3 = createLevel();
+            addPromptStrToLevel(&l3, "And there is all the difference in the world between paying and being paid. The act of paying is perhaps the most uncomfortable infliction that the two orchard thieves entailed upon us.");
+            addPromptStrToLevel(&l3, "Deep into distant woodlands winds a mazy way, reaching to overlapping spurs of mountains bathed in their hill - side blue.");
+            addPromptStrToLevel(&l3, "Should you ever be athirst in the great American desert, try this experiment, if your caravan happen to be supplied with a metaphysical professor. Yes, as every one knows, meditation and water are wedded for ever.");
+            addPromptStrToLevel(&l3, "Say, you are in the country; in some high land of lakes. Take almost any path you please, and ten to one it carries you down in a dale, and leaves you there by a pool in the stream. There is magic in it.");
+
+            compactLevel(&l1);
+            compactLevel(&l2);
+            compactLevel(&l3);
+
+            addLevelToGamemode(&newGamemode, l1);
+            addLevelToGamemode(&newGamemode, l2);
+            addLevelToGamemode(&newGamemode, l3);
             break;
         }
     }
-
+    compactGamemode(&newGamemode);
     return newGamemode;
 }
 
@@ -339,6 +404,10 @@ void time_trials_mode_loop(GamemodeData gamemode, int time_limit) {
                         else if (ch == -32) { // If arrow keys
                             ch = _getch(); // Block input of second arrow key character
                         }
+                        else if (ch == 27) { // If escape key
+                            winState = 4;
+                            levelLoop = false;
+                        }
                         else if (!(ch == 10 || ch == 13)) { // If not \n or \r (enter)
                             if (wordInputIndex == wordLength && ch == 32) { // If user at final index of prompt and presses space
                                 //int result = strcmp(userPrompt, userResponse);
@@ -450,9 +519,13 @@ void time_trials_mode_loop(GamemodeData gamemode, int time_limit) {
     if (winState == 0) {
         printf("\nTimes up! You lost.\n\n");
     }
+    else if (winState == 4) {
+        printf("\nGame abandoned.\n\n");
+    }
     else {
         printf("\nYou won!\n\n");
     }
+
     printf("[Statistics] \n");
     printf("Completion Time - ");
     formatTime(end_time - start_time);
@@ -639,6 +712,10 @@ void alt_time_trials_mode_loop(GamemodeData gamemode, int time_limit) {
                         else if (ch == -32) { // If arrow keys
                             ch = _getch(); // Block input of second arrow key character
                         }
+                        else if (ch == 27) { // If escape key
+                            winState = 4;
+                            levelLoop = false;
+                        }
                         else if (!(ch == 10 || ch == 13)) { // If not \n or \r (enter)
                             if (wordInputIndex == wordLength && ch == 32) { // If user at final index of prompt and presses space
                                 //int result = strcmp(userPrompt, userResponse);
@@ -750,6 +827,9 @@ void alt_time_trials_mode_loop(GamemodeData gamemode, int time_limit) {
     if (winState == 0) {
         printf("\nTimes up! You lost.\n\n");
     }
+    else if (winState == 4) {
+        printf("\nGame abandoned.\n\n");
+    }
     else {
         printf("\nYou won!\n\n");
     }
@@ -813,6 +893,7 @@ void normal_mode_loop(GamemodeData gamemode) {
     int wordErrors;
     int wordInputIndex;
     int lineCharsLeft;
+    int winState = -1;
     int time_limit = 40;
     int updateTimeLoop = 0;
 
@@ -913,6 +994,10 @@ void normal_mode_loop(GamemodeData gamemode) {
                     }
                     else if (ch == -32) { // If arrow keys
                         ch = _getch(); // Block input of second arrow key character
+                    }
+                    else if (ch == 27) { // If escape key
+                        winState = 4;
+                        levelLoop = false;
                     }
                     else if (!(ch == 10 || ch == 13)) { // If not \n or \r (enter)
                         if (wordInputIndex == wordLength && ch == 32) { // If user at final index of prompt and presses space
@@ -1020,7 +1105,12 @@ void normal_mode_loop(GamemodeData gamemode) {
     // Move cursor to start of input field
     moveCursor(userInputField);
 
-    printf("\nYou won!\n\n");
+    if (winState == 4) {
+        printf("\nGame abandoned.\n\n");
+    }
+    else {
+        printf("\nYou won!\n\n");
+    }
     printf("[Statistics] \n");
     printf("Completion Time - ");
     formatTime(end_time - start_time);
@@ -1204,6 +1294,10 @@ void sudden_death_mode_loop(GamemodeData gamemode, int time_limit) {
                         else if (ch == -32) { // If arrow keys
                             ch = _getch(); // Block input of second arrow key character
                         }
+                        else if (ch == 27) { // If escape key
+                            winState = 4;
+                            levelLoop = false;
+                        }
                         else if (!(ch == 10 || ch == 13)) { // If not \n or \r (enter)
                             if (wordInputIndex == wordLength && ch == 32) { // If user at final index of prompt and presses space
                                 //int result = strcmp(userPrompt, userResponse);
@@ -1318,6 +1412,9 @@ void sudden_death_mode_loop(GamemodeData gamemode, int time_limit) {
     else if (winState == 2) {
         printf("\nOops! You lost.\n\n");
     }
+    else if (winState == 4) {
+        printf("\nGame abandoned.\n\n");
+    }
     else {
         printf("\nYou won!\n\n");
     }
@@ -1339,4 +1436,25 @@ void sudden_death_mode_loop(GamemodeData gamemode, int time_limit) {
     printf("\033[2J");
     // Move cursor back to top-left
     moveCursor(homeCursor);
+}
+
+void show_credits() {
+    // Hide the cursor
+    printf("\033[?25l");
+    // Clear all text on screen and move cursor to the top-left
+    printf("\033[2J\033[H");
+
+    printf("Credits - \n\n");
+    printf("* Pangrams, https://en.wikipedia.org/wiki/Pangram\n");
+    printf("* \"Gemma\" by Daniel Errico, https://www.freechildrenstories.com/gemma/\n");
+    printf("* \"War and Peace\" by Leo Tolstoy, https://antilogicalism.com/wp-content/uploads/2017/07/war-and-peace.pdf\n");
+    printf("* \"Moby Dick\" by Herman Melville, https://uberty.org/wp-content/uploads/2015/12/herman-melville-moby-dick.pdf\n");
+
+    Sleep(2000);
+    printf("\n\nPress any key to continue...");
+    _getch();
+    // Clear all text on screen and move cursor back to the top-left
+    printf("\033[2J\033[H");
+    // Unhide cursor
+    printf("\033[?25h");
 }
