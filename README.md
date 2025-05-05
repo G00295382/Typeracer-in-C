@@ -90,11 +90,11 @@ Once the prompt is displayed, an input field is shown below with the user prefix
 
 For each word:
 
-* It is printed underlined at the current prompt progress location using promptSafeUnderlinedPrint().
+* It is printed underlined at the current prompt progress location using `promptSafeUnderlinedPrint()`.
 
-* The program waits for character-by-character input in a non-blocking charLoop using _kbhit() and _getch().
+* The program waits for character-by-character input in a non-blocking charLoop using `_kbhit()` and `_getch()`.
 
-* During this loop, the updateTime() function is called periodically to refresh the timer.
+* During this loop, the `updateTime()` function is called periodically to refresh the timer.
 
 * Input is compared to the expected word in real time. Correct characters are printed normally, while incorrect ones are shown in red.
     * Special inputs, like Backspace, Arrow keys, and Escape, are handled separately. Notably, Backspace will simulate actually removing the character from the user's response array, while Escape will exit the game early and take the user back to the welcome screen.
